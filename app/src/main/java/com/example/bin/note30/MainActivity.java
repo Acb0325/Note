@@ -31,7 +31,9 @@ package com.example.bin.note30;
         }
 
         private void renderListView() {
-            mDiaryCursor = mDbHelper.getAllNotes();
+//            Login login = new Login();
+            Intent intent = getIntent();
+            mDiaryCursor = mDbHelper.getAllNotes(intent.getStringExtra("username"));
             startManagingCursor(mDiaryCursor);
             String[] from = new String[] { DiaryDbAdapter.KEY_TITLE,
                     DiaryDbAdapter.KEY_CREATED };

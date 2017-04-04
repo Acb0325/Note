@@ -6,13 +6,12 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
 public class NoteEditActivity extends Activity {
-
-
     private EditText mTitleText;
     private EditText mBodyText;
     private Long mRowId;
@@ -50,13 +49,16 @@ public class NoteEditActivity extends Activity {
 
         confirmButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
+                Login login = new Login();
                 String title = mTitleText.getText().toString().trim();
                 String body = mBodyText.getText().toString().trim();
+                String username = Login.username;
+                Log.e("username", "用户名" + username);
                 if(!title.equals("")&&!body.equals("")){
                     if (mRowId != null) {
                         mDbHelper.updateDiary(mRowId, title, body);
                     } else
-                        mDbHelper.createDiary(title, body);
+                        mDbHelper.createDiary(username, title, body);
                     AlertDialog.Builder builder=new AlertDialog.Builder(mcontext);
                     builder.setTitle("提示");
                     builder.setMessage("保存成功");

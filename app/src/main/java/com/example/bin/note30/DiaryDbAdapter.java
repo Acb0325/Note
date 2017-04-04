@@ -11,6 +11,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public class DiaryDbAdapter {
 
+    public static final String KEY_NAME = "username";
     public static final String KEY_TITLE = "title";
     public static final String KEY_BODY = "body";
     public static final String KEY_ROWID = "_id";
@@ -20,8 +21,15 @@ public class DiaryDbAdapter {
     private DatabaseHelper mDbHelper;
     private SQLiteDatabase mDb;
 
-    private static final String DATABASE_CREATE = "create table diary (_id integer primary key autoincrement, "
-            + "title text not null, body text not null, created text not null);";
+    private static final String CREATE_DIARY = "create table diary (_id integer primary key autoincrement, "
+            + "username text not null, title text not null, body text not null, created text not null);";
+
+    public static final String CREATE_USERDATA = "create table userData(" +
+            "id integer primary key autoincrement,"
+            + "username text not null,"
+            + "sex text not null,"
+            + "password text,"
+            + "tel not null);";
 
     private static final String DATABASE_NAME = "database";
     private static final String DATABASE_TABLE = "diary";
@@ -37,12 +45,14 @@ public class DiaryDbAdapter {
 
         @Override
         public void onCreate(SQLiteDatabase db) {
-            db.execSQL(DATABASE_CREATE);
+            db.execSQL(CREATE_DIARY);
+            db.execSQL(CREATE_USERDATA);
         }
 
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
             db.execSQL("DROP TABLE IF EXISTS diary");
+            db.execSQL("drop table if exists userData");
             onCreate(db);
         }
     }
@@ -58,11 +68,12 @@ public class DiaryDbAdapter {
     }
 
     public void closeclose() {
-        mDbHelper.close();
+//        mDbHelper.close();
     }
 
-    public long createDiary(String title, String body) {
+    public long createDiary(String username, String title, String body) {
         ContentValues initialValues = new ContentValues();
+        initialValues.put(KEY_NAME, username);
         initialValues.put(KEY_TITLE, title);
         initialValues.put(KEY_BODY, body);
         Calendar calendar = Calendar.getInstance();
@@ -80,10 +91,10 @@ public class DiaryDbAdapter {
         return mDb.delete(DATABASE_TABLE, KEY_ROWID + "=" + rowId, null) > 0;
     }
 
-    public Cursor getAllNotes() {
+    public Cursor getAllNotes(String username) {
 
         return mDb.query(DATABASE_TABLE, new String[] { KEY_ROWID, KEY_TITLE,
-                KEY_BODY, KEY_CREATED }, null, null, null, null, null);
+                KEY_BODY, KEY_CREATED}, username, null, null, null, null);
     }
 
     public Cursor getDiary(long rowId) throws SQLException {
@@ -110,5 +121,35 @@ public class DiaryDbAdapter {
                 + calendar.get(Calendar.MINUTE) + "分";
         args.put(KEY_CREATED, created);
         return mDb.update(DATABASE_TABLE, args, KEY_ROWID + "=" + rowId, null) > 0;
+    }
+
+    public void insert(String userName, String sex, String pwd, String tel) {
+//        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+        String sql = "insert into userData (username,sex,password,tel) values (" + "'" + userName + "','" + sex + "','" +
+                pwd + "','" + tel + "')";
+        mDb.execSQL(sql);
+        System.out.print(sql + "\n");
+//        mDb.close();
+    }
+
+    public int selectUser(String userName) {
+//        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+        int re = 0;
+        Cursor c = mDb.rawQuery("select * from userData where username = ?", new String[]{userName});
+        if (c.moveToFirst()) {
+            re = 1;
+        }
+//        mDb.close();
+        return re;
+    }
+
+    public int login(String userName, String pwd) {
+//        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+        Cursor c = mDb.rawQuery("select * from userData where username = ? and password = ?", new String[]{userName, pwd});
+        int re = 0;
+        if (c.moveToFirst())
+            re = 1;
+//        mDb.close();
+        return re;
     }
 }
